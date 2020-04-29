@@ -1,12 +1,12 @@
 # The CNF Tests image
 
 The [CNF tests image](quay.io/openshift-kni/cnf-tests) is a containerized version of the CNF conformance test suite.
-It's intended to be run against a cluster where all the components required for running CNF workloads are installed.
+It's intended to be run against a cluster where all the components required for running CNF workloads **are already installed**.
 
-This include:
+This includes:
 
 - Targeting a machine config pool to which the machines to be tested belong to
-- Enabling sctp via machine config
+- Enabling sctp via machine config, bound to the machine pool mentioned above
 - Having the Performance Addon Operator installed
 - Having the SR-IOV operator installed
 - Having the PTP operator installed
@@ -51,6 +51,8 @@ spec:
       node-role.kubernetes.io/worker-cnf: ""
 ```
 
+Note also that a subset of the nodes must be labelled with `node-role.kubernetes.io/worker-cnf=""`.
+
 The worker pool name can be overridden via the `ROLE_WORKER_CNF` variable.
 
 ```bash
@@ -67,7 +69,7 @@ This means that it accept parameters for filtering or skipping tests.
 To filter a set of tests, the -ginkgo.focus parameter can be added:
 
 ```bash
-    docker run -v $(pwd)/:/kubeconfig -e KUBECONFIG=/kubeconfig/kubeconfig quay.io/openshift-kni/cnf-tests /usr/bin/test-run.sh -ginkgo.focus="performance|sctp"
+    docker run -v $(pwd)/:/kubeconfig -e KUBECONFIG=/kubeconfig/kubeconfig quay.io/openshift-kni/cnf-tests /usr/bin/test-run.sh -ginkgo.focus "performance|sctp"
 ```
 
 ### Available features
@@ -86,6 +88,22 @@ To run in dry-run mode:
 
 ```bash
     docker run -v $(pwd)/:/kubeconfig -e KUBECONFIG=/kubeconfig/kubeconfig quay.io/openshift-kni/cnf-tests /usr/bin/test-run.sh -ginkgo.dryRun -ginkgo.v
+```
+
+## Test Phases
+
+The `/usr/bin/test-run.sh` is composed of three different suites, that perform three different phases of the test execution:
+
+- Validation, backed by the `validationsuite` executable
+- Configuration, backed by the `configsuite` exacutable
+- Test Execution, backed by the `cnftests` executable
+
+Each of them can be executed directly, by running the corresponding executable.
+
+As an example, to run only the tests without validating the cluster nor configuring it:
+
+```bash
+    docker run -v $(pwd)/:/kubeconfig -e KUBECONFIG=/kubeconfig/kubeconfig quay.io/openshift-kni/cnf-tests /usr/bin/cnftests -ginkgo.focus "performance|sctp"
 ```
 
 ## Disconnected Mode
