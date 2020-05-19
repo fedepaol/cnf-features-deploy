@@ -40,20 +40,6 @@ type metric struct {
 	Pod string
 }
 
-var _ = Describe("prometheus", func() {
-	Context("Metrics reported by PTP pods", func() {
-		It("Should all be reported by prometheus", func() {
-			ptpPods, err := client.Client.Pods(openshiftPtpNamespace).List(metav1.ListOptions{
-				LabelSelector: "app=linuxptp-daemon",
-			})
-			Expect(err).ToNot(HaveOccurred())
-			ptpMonitoredEntriesByPod, uniqueMetricKeys := collectPtpMetrics(ptpPods.Items)
-			podsPerPrometheusMetricKey := collectPrometheusMetrics(uniqueMetricKeys)
-			containSameMetrics(ptpMonitoredEntriesByPod, podsPerPrometheusMetricKey)
-		})
-	})
-})
-
 func collectPrometheusMetrics(uniqueMetricKeys []string) map[string][]string {
 	prometheusPods, err := client.Client.Pods(openshiftMonitoringNamespace).List(metav1.ListOptions{
 		LabelSelector: "app=prometheus",
