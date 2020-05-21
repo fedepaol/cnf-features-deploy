@@ -158,8 +158,10 @@ var _ = Describe("ptp", func() {
 				})
 				Expect(err).ToNot(HaveOccurred())
 				ptpMonitoredEntriesByPod, uniqueMetricKeys := collectPtpMetrics(ptpPods.Items)
-				podsPerPrometheusMetricKey := collectPrometheusMetrics(uniqueMetricKeys)
-				containSameMetrics(ptpMonitoredEntriesByPod, podsPerPrometheusMetricKey)
+				Eventually(func() error {
+					podsPerPrometheusMetricKey := collectPrometheusMetrics(uniqueMetricKeys)
+					return containSameMetrics(ptpMonitoredEntriesByPod, podsPerPrometheusMetricKey)
+				}, 2*time.Minute, 2*time.Second).Should(Not(HaveOccurred()))
 			})
 		})
 	})

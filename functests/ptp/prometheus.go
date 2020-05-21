@@ -2,9 +2,9 @@ package ptp
 
 import (
 	"encoding/json"
+	"fmt"
 	"strings"
 
-	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
 	client "github.com/openshift-kni/cnf-features-deploy/functests/utils/client"
@@ -86,7 +86,7 @@ func collectPtpMetrics(ptpPods []k8sv1.Pod) (map[string][]string, []string) {
 	return ptpMonitoredEntriesByPod, uniqueMetricKeys
 }
 
-func containSameMetrics(ptpMetricsByPod map[string][]string, prometheusMetrics map[string][]string) {
+func containSameMetrics(ptpMetricsByPod map[string][]string, prometheusMetrics map[string][]string) error {
 	for podName, monitoringKeys := range ptpMetricsByPod {
 		for _, key := range monitoringKeys {
 			if podsWithMetric, ok := prometheusMetrics[key]; ok {
@@ -97,9 +97,10 @@ func containSameMetrics(ptpMetricsByPod map[string][]string, prometheusMetrics m
 					continue
 				}
 			}
-			Fail("Metric " + podName + " on pod " + podName + "was not reported.")
+			return fmt.Errorf("Metric %s on pod %s was not reported", podName, podName)
 		}
 	}
+	return nil
 }
 
 func hasElement(slice []string, item string) bool {
